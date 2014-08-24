@@ -1,0 +1,81 @@
+#!/usr/bin/env ruby
+
+def parse_commit_hash(log)
+  commit = { }
+
+  log.each_with_index do |line, i|
+    line = line.split
+    next unless line.first == 'commit'
+
+    commit[:hash] = line.last
+    return commit, i + 1
+  end
+
+  raise 'no commit found'
+end
+
+def parse_one_commit(log)
+  commit, idx = parse_commit_hash(log)
+  log.slice!(0, idx)
+
+  log.each_with_index do |line, i|
+    next unless line.empty?
+
+    commit[:message] = log[i + 1].strip
+    raise 'weird message ending' if log[i + 2] && !log[i + 2].empty?
+
+    log.slice!(0, i + 2)
+
+    return commit
+  end
+
+  raise 'no message found'
+end
+
+def parse_all_commits(log)
+  commits = []
+  commits << parse_one_commit(log) until log.empty?
+
+  return commits
+end
+
+def prompt_user_until_quit_or_selection(commits, idx = 0, error=false)
+  system "clear"
+
+  puts "Invalid entry \"#{error}\"; try again" if error
+  puts 'Enter a number to revert to that commit'
+  puts 'Enter "p" to scroll to the previous set of commits'
+  puts 'Enter "n" to scroll to the next set of commits'
+  puts 'Enter "q" to quit without reverting'
+  puts '----------------------------------------------'
+
+  commits[idx...idx + 4].each_with_index do |commit, i|
+    puts "#{idx + i}: #{commit[:message]}"
+  end
+  selection = gets.chomp!
+  number    = selection.to_i
+  selection = number if selection == "0" || number != 0
+
+  error = false
+
+  case selection
+  when 'q'
+    return false
+  when 'p'
+   idx -= 4
+   idx  = [idx, 0].max
+  when 'n'
+    idx += 4
+    idx  = [idx, commits.size - 4].min
+  when idx...idx + 4
+    return commits[selection.to_i][:hash]
+  else
+    error = selection
+  end
+
+  prompt_user_until_quit_or_selection(commits, idx, error)
+end
+
+log     = %x(git log).split("\n")
+commits = parse_all_commits(log)
+puts prompt_user_until_quit_or_selection(commits)
