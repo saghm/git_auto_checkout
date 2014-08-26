@@ -39,11 +39,12 @@ def parse_all_commits(log)
   return commits
 end
 
-def prompt_user_until_quit_or_selection(commits, idx = 0, error=false)
-  system "clear"
+def print_prompt(commits, idx, error)
+  system 'clear'
 
   puts "Invalid entry \"#{error}\"; try again" if error
   puts 'Enter a number to revert to that commit'
+  puts 'Enter "b" to see a list of branches to checkout'
   puts 'Enter "p" to scroll to the previous set of commits'
   puts 'Enter "n" to scroll to the next set of commits'
   puts 'Enter "q" to quit without reverting'
@@ -52,9 +53,14 @@ def prompt_user_until_quit_or_selection(commits, idx = 0, error=false)
   commits[idx...idx + 4].each_with_index do |commit, i|
     puts "#{idx + i}: #{commit[:message]}"
   end
+end
+
+def prompt_user_until_quit_or_selection(commits, idx = 0, error=false)
+  print_prompt(commits, idx, error)
+
   selection = gets.chomp!
   number    = selection.to_i
-  selection = number if selection == "0" || number != 0
+  selection = number if selection == '0' || number != 0
 
   error = false
 
@@ -76,6 +82,12 @@ def prompt_user_until_quit_or_selection(commits, idx = 0, error=false)
   prompt_user_until_quit_or_selection(commits, idx, error)
 end
 
-log     = %x(git log).split("\n")
-commits = parse_all_commits(log)
-puts prompt_user_until_quit_or_selection(commits)
+def git_checkout_old_commit(commit_hash_string)
+system 'clear'
+  %x(git checkout #{commit_hash_string})
+end
+
+log        = %x(git log).split("\n")
+commits    = parse_all_commits(log)
+old_commit = prompt_user_until_quit_or_selection(commits)
+git_checkout_old_commit(old_commit)
