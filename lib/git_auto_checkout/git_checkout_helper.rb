@@ -17,10 +17,10 @@ module GitAutoCheckout
     #
     # Returns nothing.
     def make_commit
-      old_commit = prompt_user_until_quit_or_selection
-      return unless old_commit
+      commit_or_branch = prompt_user_until_quit_or_commit_selection
+      return unless commit_or_branch
 
-      git_checkout_old_commit(old_commit)
+      git_checkout(commit_or_branch)
     end
 
     private
@@ -62,14 +62,16 @@ module GitAutoCheckout
                false
              when 'p'
                idx = [idx - 4, 0].max
-               prompt_user_until_quit_or_selection(idx, false)
+               prompt_user_until_quit_or_commit_selection(idx, false)
              when 'n'
                idx = [idx + 4, commits.size - 4].min
-               prompt_user_until_quit_or_selection(idx, false)
+               idx = [idx, 0].max
+               prompt_user_until_quit_or_commit_selection(idx, false)
              when idx...idx + 4
-               commits[selection.to_i].hash_string
+               @commits[selection.to_i].hash_string
              else
-               prompt_user_until_quit_or_selection(idx, selection)
+               selection = invalid_entry(selection)
+               prompt_user_until_quit_or_commit_selection(idx, selection)
              end
     end
 
@@ -82,7 +84,7 @@ module GitAutoCheckout
     def print_commit_prompt(idx, error)
       system 'clear'
 
-      puts "Invalid entry \"#{error}\"; try again" if error
+      puts error if error
       puts 'Enter a number to checkout that commit'
       puts 'Enter "b" to see a list of branches to checkout'
       puts 'Enter "p" to scroll to the previous set of commits'
@@ -148,9 +150,9 @@ module GitAutoCheckout
     # commit_hash_string - String of past git commit to checkout.
     #
     # Returns nothing.
-    def git_checkout_old_commit(commit_hash_string)
+    def git_checkout(commit_or_branch)
       system 'clear'
-      `git checkout #{commit_hash_string})`
+      `git checkout #{commit_or_branch}`
     end
 
     def get_git_branches
@@ -159,6 +161,13 @@ module GitAutoCheckout
     end
 
     def prompt_user_until_quit_or_branch_selection(idx = 0, error=false)
+      if @branches.empty?
+        return prompt_user_until_quit_or_commit_selection(
+                 0,
+                 'No other branches exist'
+               )
+      end
+
       print_branch_prompt(idx, error)
 
       selection = gets.chomp!
@@ -177,17 +186,18 @@ module GitAutoCheckout
                idx = [idx + 4, commits.size - 4].min
                prompt_user_until_quit_or_branch_selection(idx, false)
              when idx...idx + 4
-               commits[selection.to_i].hash_string
+               @branches[selection.to_i]
              else
+               selection = invalid_entry(selection)
                prompt_user_until_quit_or_branch_selection(idx, selection)
              end
     end
 
 
-    def print_commit_prompt(idx, error)
+    def print_branch_prompt(idx, error)
       system 'clear'
 
-      puts "Invalid entry \"#{error}\"; try again" if error
+      puts error if error
       puts 'Enter a number to checkout that branch'
       puts 'Enter "c" to see a list of commits to checkout'
       puts 'Enter "p" to scroll to the previous set of commits'
@@ -200,6 +210,9 @@ module GitAutoCheckout
       end
     end
 
+    def invalid_entry(error)
+      "Invalid entry \"#{error}\"; try again"
+    end
   end # End class
 end # End module
 1
