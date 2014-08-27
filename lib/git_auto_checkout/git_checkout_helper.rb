@@ -7,8 +7,9 @@ module GitAutoCheckout
 
     # Internal: Intialize a CheckoutHelper.
     def initialize
-      log = %x(git log).split("\n")
+      log = `git log`.split("\n")
       parse_all_commits(log)
+      get_git_branches
     end
 
     # Internal: Prompt the user to select a past commit or quit, and checkout the
@@ -47,14 +48,16 @@ module GitAutoCheckout
     # Raises error (through #parse_one_commit if the log String is malformed (e.g.
     # each commit message is not preceded and succeeded by an empty line).
     # Raises error (through #parse_commit_hash) if no commit was found.
-    def prompt_user_until_quit_or_selection(idx = 0, error=false)
-      print_prompt(idx, error)
+    def prompt_user_until_quit_or_commit_selection(idx = 0, error=false)
+      print_commit_prompt(idx, error)
 
       selection = gets.chomp!
       number    = selection.to_i
       selection = number if selection == '0' || number != 0
 
       return case selection
+             when 'b'
+               prompt_user_until_quit_or_branch_selection
              when 'q'
                false
              when 'p'
@@ -76,15 +79,15 @@ module GitAutoCheckout
     # error - Incorrect input String previously given, or nil if there was none.
     #
     # Returns nothing.
-    def print_prompt(idx, error)
+    def print_commit_prompt(idx, error)
       system 'clear'
 
       puts "Invalid entry \"#{error}\"; try again" if error
-      puts 'Enter a number to revert to that commit'
+      puts 'Enter a number to checkout that commit'
       puts 'Enter "b" to see a list of branches to checkout'
       puts 'Enter "p" to scroll to the previous set of commits'
       puts 'Enter "n" to scroll to the next set of commits'
-      puts 'Enter "q" to quit without reverting'
+      puts 'Enter "q" to quit without checking out anything'
       puts '----------------------------------------------'
 
       @commits[idx...idx + 4].each_with_index do |commit, i|
@@ -147,7 +150,56 @@ module GitAutoCheckout
     # Returns nothing.
     def git_checkout_old_commit(commit_hash_string)
       system 'clear'
-      %x(git checkout #{commit_hash_string})
+      `git checkout #{commit_hash_string})`
     end
-  end
-end
+
+    def get_git_branches
+      @branches = `git branch`.split("\n").reject { |branch| branch.chr == "*" }
+      @branches.map!(&:strip)
+    end
+
+    def prompt_user_until_quit_or_branch_selection(idx = 0, error=false)
+      print_branch_prompt(idx, error)
+
+      selection = gets.chomp!
+      number    = selection.to_i
+      selection = number if selection == '0' || number != 0
+
+      return case selection
+             when 'c'
+               prompt_user_until_quit_or_commit_selection
+             when 'q'
+               false
+             when 'p'
+               idx = [idx - 4, 0].max
+               prompt_user_until_quit_or_branch_selection(idx, false)
+             when 'n'
+               idx = [idx + 4, commits.size - 4].min
+               prompt_user_until_quit_or_branch_selection(idx, false)
+             when idx...idx + 4
+               commits[selection.to_i].hash_string
+             else
+               prompt_user_until_quit_or_branch_selection(idx, selection)
+             end
+    end
+
+
+    def print_commit_prompt(idx, error)
+      system 'clear'
+
+      puts "Invalid entry \"#{error}\"; try again" if error
+      puts 'Enter a number to checkout that branch'
+      puts 'Enter "c" to see a list of commits to checkout'
+      puts 'Enter "p" to scroll to the previous set of commits'
+      puts 'Enter "n" to scroll to the next set of commits'
+      puts 'Enter "q" to quit without checking out anything'
+      puts '----------------------------------------------'
+
+      @branches[idx...idx + 4].each_with_index do |branch, i|
+        puts "#{idx + i}: #{branch}"
+      end
+    end
+
+  end # End class
+end # End module
+1
