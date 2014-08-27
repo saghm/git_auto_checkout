@@ -33,6 +33,9 @@ module GitAutoCheckout
     def parse_all_commits(log)
       @commits  = []
       @commits << parse_one_commit(log) until log.empty?
+
+      # Show commits newest to oldest.
+      @commits.reverse
     end
 
     # Internal: Prompts user for selection of a past commit.
