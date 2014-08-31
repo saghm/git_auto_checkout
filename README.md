@@ -10,7 +10,7 @@ it there sometime soon, but for now, folllow these steps to install:
 You must have git installed on your system, as well as the "gem" command
 available.
 
-## Then run the following commands in your terminal**
+## Then run the following commands in your terminal
 
 1. `git clone https://github.com/saghmrossi/git_auto_checkout/`
 2. `cd git_auto_checkout`
