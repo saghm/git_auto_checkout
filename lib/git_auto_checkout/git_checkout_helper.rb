@@ -12,8 +12,8 @@ module GitAutoCheckout
       get_git_branches
     end
 
-    # Internal: Prompt the user to select a past commit or quit, and checkout the
-    # past commit if one was selected.
+    # Internal: Prompt the user to select a past commit or quit, and checkout
+    # the past commit if one was selected.
     #
     # Returns nothing.
     def make_commit
@@ -45,8 +45,8 @@ module GitAutoCheckout
     # error - Incorrect input String previously given, or nil if there was none.
     #
     # Returns hash String of selected commit, or false if none was chosen.
-    # Raises error (through #parse_one_commit if the log String is malformed (e.g.
-    # each commit message is not preceded and succeeded by an empty line).
+    # Raises error (through #parse_one_commit if the log String is malformed
+    # (e.g. each commit message is not preceded and succeeded by an empty line).
     # Raises error (through #parse_commit_hash) if no commit was found.
     def prompt_user_until_quit_or_commit_selection(idx = 0, error=false)
       print_commit_prompt(idx, error)
@@ -103,8 +103,8 @@ module GitAutoCheckout
     # log - String output of `git log`.
     #
     # Returns the GitCommit parsed from the log.
-    # Raises error if the log String is malformed (e.g. each commit message is not
-    # preceded and succeeded by an empty line).
+    # Raises error if the log String is malformed (e.g. each commit message is
+    # not preceded and succeeded by an empty line).
     # Raises error (through #parse_commit_hash) if no commit was found.
     def parse_one_commit(log)
       commit, idx = parse_commit_hash(log)
