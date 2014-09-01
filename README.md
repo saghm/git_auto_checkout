@@ -15,9 +15,7 @@ Run the following command in your terminal:
 ## Method 2: Manually install gem
 
 The repostory is a typical Ruby gem, so it can be installed by cloning and
-locally building the .gem file. As of right now, the gem is *not* published on
-rubygems.org, so `gem install git_auto_checkout` won't work. I expect to publish
-it there sometime soon, but for now, folllow these steps to install:
+locally building the .gem file. Follow these steps to install the gem manually:
 
 ### Prerequisites
 
