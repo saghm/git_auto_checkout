@@ -6,8 +6,10 @@ module GitAutoCheckout
     attr_reader :commits
 
     # Internal: Intialize a CheckoutHelper.
-    def initialize
-      log = `git log`.split("\n")
+    def initialize(page_size = 8)
+      @page_size = page_size
+      log        = `git log`.split("\n")
+      
       parse_all_commits(log)
       get_git_branches
     end
@@ -61,13 +63,13 @@ module GitAutoCheckout
              when 'q'
                false
              when 'p'
-               idx = [idx - 4, 0].max
+               idx = [idx - @page_size, 0].max
                prompt_user_until_quit_or_commit_selection(idx, false)
              when 'n'
-               idx = [idx + 4, commits.size - 4].min
+               idx = [idx + @page_size, commits.size - @page_size].min
                idx = [idx, 0].max
                prompt_user_until_quit_or_commit_selection(idx, false)
-             when idx...idx + 4
+             when idx...idx + @page_size
                @commits[selection.to_i].hash_string
              else
                selection = invalid_entry(selection)
@@ -92,7 +94,7 @@ module GitAutoCheckout
       puts 'Enter "q" to quit without checking out anything'
       puts '----------------------------------------------'
 
-      @commits[idx...idx + 4].each_with_index do |commit, i|
+      @commits[idx...idx + @page_size].each_with_index do |commit, i|
         puts "#{idx + i}: #{commit.message}"
       end
     end
@@ -180,12 +182,12 @@ module GitAutoCheckout
              when 'q'
                false
              when 'p'
-               idx = [idx - 4, 0].max
+               idx = [idx - @page_size, 0].max
                prompt_user_until_quit_or_branch_selection(idx, false)
              when 'n'
-               idx = [idx + 4, commits.size - 4].min
+               idx = [idx + @page_size, commits.size - @page_size].min
                prompt_user_until_quit_or_branch_selection(idx, false)
-             when idx...idx + 4
+             when idx...idx + @page_size
                @branches[selection.to_i]
              else
                selection = invalid_entry(selection)
@@ -205,7 +207,7 @@ module GitAutoCheckout
       puts 'Enter "q" to quit without checking out anything'
       puts '----------------------------------------------'
 
-      @branches[idx...idx + 4].each_with_index do |branch, i|
+      @branches[idx...idx + @page_size].each_with_index do |branch, i|
         puts "#{idx + i}: #{branch}"
       end
     end
