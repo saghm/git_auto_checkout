@@ -3,6 +3,7 @@ $:.push File.expand_path('../lib, __FILE__')
 Gem::Specification.new do |s|
   s.name        = 'git_auto_checkout'
   s.version     = '0.1.0'
+  s.license     = 'BSD 3-Clause'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Saghm Rossi']
   s.email       = ['saghmrossi@gmail.com']
